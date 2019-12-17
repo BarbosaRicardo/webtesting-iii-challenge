@@ -1,15 +1,59 @@
 // Test away!
-import React from 'react.js';
+import React from 'react';
 import { render, fireEvent} from '@testing-library/react';
 import Controls from '../controls/Controls.js';
 
 test("cannot be closed or opened if locked", () => {
     const toggle = jest.fn();
-    const { getText } = render (
+    const { getByText } = render (
         <Controls locked={true} closed={true} toggle={ toggle } />
     ); //end of render 
     const openGate = getByText(/open gate/i);
     fireEvent.click(openGate);
     expect(toggle).not.toHaveBeenCalled();
-});
+});//end of test
 
+test("provide buttons to toggle the closed and locked states", () => {
+    const { getAllByText } = render(<Controls />);
+    const buttons = getAllByText(/gate/i);
+    expect(buttons).toBeDefined();
+});//end of test 
+
+test('buttons text changes to reflect state door will be when clicked', () => {
+    let mockState = {
+        locked: false,
+        closed: false
+    }
+    const toggleLocked = jest.fn();
+    const toggleClosed = jest.fn();
+    const { getAllByText } = render(
+        <Controls locked={mockState.locked} 
+                  toggleLocked={toggleLocked} 
+                  closed={mockState.closed}
+                  toggleClosed={toggleClosed}
+        />)//end of render
+
+    const [toggleLock, toggleClose] = getAllByText(/gate/i);
+    fireEvent.click(toggleClose);
+    expect(toggleClosed).toHaveBeenCalled();
+    expect(toggleClose.textContent).toBe("Close Gate");
+    expect(toggleLock.textContent).toBe('Lock Gate');
+}) //end of test
+
+test("the closed toggle button is disabled if the gate is locked", () => {
+    const toggleClosed = jest.fn();
+    const { getByText } = render(<Controls locked={true} toggleClosed={toggleClosed} />);
+    const closedBtn = getByText(/close gate/i);
+    fireEvent.click(closedBtn);
+    expect(toggleClosed).not.toHaveBeenCalled();
+  }); //end of test
+
+  test("the locked toggle button is disabled if the gate is open", () => {
+    const toggleLocked = jest.fn();
+    const { getByText } = render(
+      <Controls closed={false} toggleLocked={toggleLocked} />
+    ); 
+    const lockBtn = getByText(/lock gate/i);
+    fireEvent.click(lockBtn);
+    expect(toggleLocked).not.toHaveBeenCalled();
+  });//end of test
